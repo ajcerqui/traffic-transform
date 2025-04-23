@@ -1,6 +1,15 @@
 -- Begin transaction
 BEGIN;
 
+-- Alter the traffic_flow table to change confidence to decimal if it exists
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns 
+               WHERE table_name = 'traffic_flow' AND column_name = 'confidence') THEN
+        ALTER TABLE traffic_flow ALTER COLUMN confidence TYPE DECIMAL(5,2);
+    END IF;
+END$$;
+
 -- Create normalized tables if they don't exist
 CREATE TABLE IF NOT EXISTS locations (
     id SERIAL PRIMARY KEY,
@@ -17,7 +26,7 @@ CREATE TABLE IF NOT EXISTS traffic_flow (
     free_flow_speed DECIMAL(6,2),
     current_travel_time INTEGER,
     free_flow_travel_time INTEGER,
-    confidence INTEGER,
+    confidence DECIMAL(5,2),  -- Changed from INTEGER to DECIMAL
     road_closure BOOLEAN,
     timestamp TIMESTAMP,
     UNIQUE(location_id, timestamp)
@@ -50,7 +59,7 @@ SELECT
     (r.raw_json->'flowSegmentData'->>'freeFlowSpeed')::DECIMAL(6,2) AS free_flow_speed,
     (r.raw_json->'flowSegmentData'->>'currentTravelTime')::INTEGER AS current_travel_time,
     (r.raw_json->'flowSegmentData'->>'freeFlowTravelTime')::INTEGER AS free_flow_travel_time,
-    (r.raw_json->'flowSegmentData'->>'confidence')::INTEGER AS confidence,
+    (r.raw_json->'flowSegmentData'->>'confidence')::DECIMAL(5,2) AS confidence,
     (r.raw_json->'flowSegmentData'->>'roadClosure')::BOOLEAN AS road_closure,
     r.created_at AS timestamp
 FROM raw_data r
