@@ -1,10 +1,11 @@
+BEGIN;
 -- Add processed column if missing
 ALTER TABLE raw_traffic_json ADD COLUMN IF NOT EXISTS processed BOOLEAN DEFAULT FALSE;
 
 -- Begin transaction with error handling
 DO $$
 BEGIN
-    BEGIN;
+
 
     -- Alter confidence column type if exists
     IF EXISTS (SELECT 1 FROM information_schema.columns 
