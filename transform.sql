@@ -25,15 +25,13 @@ CREATE TABLE IF NOT EXISTS traffic_flow (
 
 -- Extract data from JSON and insert into locations table
 WITH raw_data AS (
-    SELECT raw_json, created_at, COALESCE(location_name, 'Downtown Seattle') AS location_name 
-    FROM raw_traffic_json 
-    WHERE raw_json IS NOT NULL
+    SELECT raw_json, created_at FROM raw_traffic_json WHERE raw_json IS NOT NULL
 )
 INSERT INTO locations (latitude, longitude, name)
 SELECT 
     (raw_json->'flowSegmentData'->'coordinates'->'coordinate'->0->>'latitude')::DECIMAL(9,6) AS latitude,
     (raw_json->'flowSegmentData'->'coordinates'->'coordinate'->0->>'longitude')::DECIMAL(9,6) AS longitude,
-    location_name AS name
+    'Downtown Seattle' AS name
 FROM raw_data
 ON CONFLICT (latitude, longitude) DO NOTHING;
 
