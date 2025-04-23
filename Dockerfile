@@ -27,12 +27,16 @@ RUN chmod 0644 /etc/cron.d/transform-cron
 # Create log file
 RUN touch /var/log/cron.log
 
-# Create entrypoint script
+# Create entrypoint script with explicit DATABASE_URL export and a manual test run
 RUN echo '#!/bin/bash\n\
+export DATABASE_URL=$DATABASE_URL\n\
 env >> /etc/environment\n\
 cron\n\
 echo "Transformation service started. Watching log..."\n\
+echo "Running manual transformation test..."\n\
+/usr/local/bin/run_transform.sh\n\
 tail -f /var/log/cron.log' > /entrypoint.sh
+
 RUN chmod +x /entrypoint.sh
 
 # Set entrypoint
